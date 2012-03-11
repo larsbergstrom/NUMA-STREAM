@@ -1,0 +1,24 @@
+The original STREAM benchmark was developed by John D. McCalpin and is copyright
+1991-2005. 
+
+This version was adapted by Lars Bergstrom in 2011-2012 with much feedback from
+Twitter, Metarstation, and a variety of other end users.
+
+First, you will need to install libnuma on your machine. This library is not suppored on
+OSX, but is available via any package manager on Linux or can be locally installed from:
+http://oss.sgi.com/projects/libnuma/
+
+Then, set the number of threads equal to the number of cores on your machine:
+export OMP_NUM_THREADS=48
+
+Finally, compile using GCC:
+gcc -O3 -std=c99 -fopenmp -lnuma -DN=80000000 -DNTIMES=100 stream.c -o stream-gcc
+
+Variants:
+- To simulate non-NUMA aware access, define the constant: -DNON_NUMA
+This constant will cause the memory to be touched by a thread on one node and then
+for all of the stream operations to happen from another node.
+- To show what happens when you perform only accesses that do not coincide with
+a prior cache block, compile with -DSTRIDE=8 (assuming 64-byte cache lines and 8-byte
+doubles).
+

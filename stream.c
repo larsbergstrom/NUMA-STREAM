@@ -43,13 +43,7 @@
 /*
  * 2011 - Lars Bergstrom (larsberg@cs.uchicago.edu)
  *
- * This version of stream.c contains some small modifications that both I
- * and the engineering team at Metarstation (http://www.metarstation.com/ )
- * made to the original stream benchmark.
- *
- * These modifications are newer than those presented in the technical
- * report, but achieve the same throughput numbers with an easier compilation
- * and command-line interface.
+ * This version of stream.c contains some small modifications to the original stream benchmark.
  *
  * First, you will need to install libnuma on your machine. This library is not suppored on
  * OSX, but is available via any package manager on Linux or can be locally installed from:
@@ -228,7 +222,7 @@ main()
 #ifdef NON_NUMA
 #pragma omp parallel for private(i)
 	for (j=0; j<k; j++) {
-		i = (j*5)%num_nodes;
+		i = (j+1)%num_nodes;
         numa_run_on_node(i);
 	}
     printf("Execution will be non-NUMA aware.\n");
