@@ -49,7 +49,7 @@
 # include <sys/time.h>
 # include <malloc.h>
 # include <pthread.h>
-#include "../numactl-2.0.7-rc2/numa.h"
+# include <numa.h>
 
 /* INSTRUCTIONS:
  *
