@@ -12,7 +12,7 @@ Then, set the number of threads equal to the number of cores on your machine:
 export OMP_NUM_THREADS=48
 
 Finally, compile using GCC:
-gcc -O3 -std=c99 -fopenmp -lnuma -DN=80000000 -DNTIMES=100 stream.c -o stream-gcc
+gcc -O3 -std=c99 -fopenmp -DN=80000000 -DNTIMES=100 stream.c -o stream-gcc -lnuma
 
 Variants:
 - To simulate non-NUMA aware access, define the constant: -DNON_NUMA
