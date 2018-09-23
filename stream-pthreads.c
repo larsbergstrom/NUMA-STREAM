@@ -286,7 +286,7 @@ main(int argc, char *argv[])
         exit (1);
     }
 
-    int num_nodes = numa_max_node();
+    int num_nodes = numa_max_node() + 1;
     printf ("Number of available nodes = %i\n", num_nodes);
 
     pthread_t* threads=(pthread_t *)malloc(NUM_THREADS*sizeof(pthread_t));
