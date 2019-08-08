@@ -42,6 +42,7 @@
 /*-----------------------------------------------------------------------*/
 #define _GNU_SOURCE
 
+# include <assert.h>
 # include <stdio.h>
 # include <math.h>
 # include <float.h>
@@ -49,7 +50,7 @@
 # include <sys/time.h>
 # include <malloc.h>
 # include <pthread.h>
-#include "../numactl-2.0.7-rc2/numa.h"
+# include <numa.h>
 
 /* INSTRUCTIONS:
  *
@@ -145,6 +146,13 @@ static double	bytes[5] = {
 extern double mysecond();
 extern void checkSTREAMresults();
 
+void numa_error(char *where)
+{
+    fprintf(stderr, "NUMA error: %s\n", where);
+    exit(0);
+}
+
+
 typedef struct Arg_T  {
     int proc;
     int allocNode;
@@ -155,8 +163,9 @@ double results[NUM_THREADS];
 void *readProc(void *arg) {
     arg_t *pArg = (arg_t*)arg;
     int me = pArg->proc;
-    if (numa_run_on_node (me) == -1) {
-        printf("unable to set affinity to processor %d\n", me);
+    if (numa_run_on_node (pArg->allocNode) == -1) {
+        printf("unable to set affinity to processor %d\n", pArg->allocNode);
+        exit(1);
     }
 
     double *a2 = a[me];
@@ -177,8 +186,9 @@ void *readProc(void *arg) {
 void *copyProc(void *arg) {
     arg_t *pArg = (arg_t*)arg;
     int me = pArg->proc;
-    if (numa_run_on_node (me) == -1) {
-        printf("unable to set affinity to processor %d\n", me);
+    if (numa_run_on_node (pArg->allocNode) == -1) {
+        printf("unable to set affinity to processor %d\n", pArg->allocNode);
+        exit(1);
     }
 
     double *a2 = a[me];
@@ -195,8 +205,9 @@ void *copyProc(void *arg) {
 void *scaleProc(void *arg) {
     arg_t *pArg = (arg_t*)arg;
     int me = pArg->proc;
-    if (numa_run_on_node (me) == -1) {
-        printf("unable to set affinity to processor %d\n", me);
+    if (numa_run_on_node (pArg->allocNode) == -1) {
+        printf("unable to set affinity to processor %d\n", pArg->allocNode);
+        exit(1);
     }
 
     double *b2 = b[me];
@@ -212,8 +223,9 @@ void *scaleProc(void *arg) {
 void *addProc(void *arg) {
     arg_t *pArg = (arg_t*)arg;
     int me = pArg->proc;
-    if (numa_run_on_node (me) == -1) {
-        printf("unable to set affinity to processor %d\n", me);
+    if (numa_run_on_node (pArg->allocNode) == -1) {
+        printf("unable to set affinity to processor %d\n", pArg->allocNode);
+        exit(1);
     }
 
     double *a2 = a[me];
@@ -231,8 +243,9 @@ void *addProc(void *arg) {
 void *triadProc(void *arg) {
     arg_t *pArg = (arg_t*)arg;
     int me = pArg->proc;
-    if (numa_run_on_node (me) == -1) {
-        printf("unable to set affinity to processor %d\n", me);
+    if (numa_run_on_node (pArg->allocNode) == -1) {
+        printf("unable to set affinity to processor %d\n", pArg->allocNode);
+        exit(1);
     }
 
     double *a2 = a[me];
@@ -286,7 +299,7 @@ main(int argc, char *argv[])
         exit (1);
     }
 
-    int num_nodes = numa_max_node();
+    int num_nodes = numa_max_node() + 1;
     printf ("Number of available nodes = %i\n", num_nodes);
 
     pthread_t* threads=(pthread_t *)malloc(NUM_THREADS*sizeof(pthread_t));
@@ -296,8 +309,9 @@ main(int argc, char *argv[])
     arg_t *p=(arg_t*)malloc(sizeof(arg_t)*NUM_THREADS);
     for (int i=0; i<NUM_THREADS; i++)
     {
-        p[i].proc=i%num_nodes;
+        p[i].proc=i;
         p[i].allocNode = ((i+MEM_OFF)%num_nodes);
+        printf("proc %d on node %d\n", p[i].proc, p[i].allocNode);
     }
     
     /* Allocate memory for the threads */
@@ -361,6 +375,16 @@ main(int argc, char *argv[])
             pthread_join(threads[i], NULL);
         }
         times[1][k] = mysecond() - times[1][k];
+
+
+        /* Check copy */
+        for (int t= 0; t < NUM_THREADS; ++t)
+	{
+            for (int j= 0; j < N; j+= STRIDE)
+	    {
+                assert(a[t][j] == c[t][j]);
+	    }
+	}
 
         /* SCALE */
         times[2][k] = mysecond();
