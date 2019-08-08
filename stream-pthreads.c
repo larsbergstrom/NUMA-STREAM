@@ -146,6 +146,13 @@ static double	bytes[5] = {
 extern double mysecond();
 extern void checkSTREAMresults();
 
+void numa_error(char *where)
+{
+    fprintf(stderr, "NUMA error: %s\n", where);
+    exit(0);
+}
+
+
 typedef struct Arg_T  {
     int proc;
     int allocNode;
@@ -304,6 +311,7 @@ main(int argc, char *argv[])
     {
         p[i].proc=i;
         p[i].allocNode = ((i+MEM_OFF)%num_nodes);
+        printf("proc %d on node %d\n", p[i].proc, p[i].allocNode);
     }
     
     /* Allocate memory for the threads */
